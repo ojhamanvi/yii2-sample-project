@@ -8,6 +8,7 @@ return [
     'user.passwordMinLength' => 8,
     'status' => [
         1 => 'Active',
-        0 => 'Inactive'
+        0 => 'Inactive',
+        2=>'Deleted'
     ],
 ];

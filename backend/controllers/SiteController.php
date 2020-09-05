@@ -9,6 +9,7 @@ use common\models\LoginForm;
 use backend\models\SignupForm;
 use yii\db\Query;
 use common\models\States;
+use common\models\User;
 use backend\models\UserSearch;
 
 /**
@@ -26,11 +27,11 @@ class SiteController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['login', 'error','signup','state','update','view','delete'],
+                        'actions' => ['login', 'error','signup','state','update','view','delete','get-users'],
                         'allow' => true,
                     ],
                     [
-                        'actions' => ['index'],
+                        'actions' => ['index','get-users'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
@@ -183,5 +184,21 @@ class SiteController extends Controller
             return $this->redirect(['/site/index']);
         }
     }
+    
 
+    public function actionGetUsers()
+    {
+        
+        \Yii::$app->response->format = \yii\web\Response:: FORMAT_JSON;
+        $users = User::find()->all();
+        if(count($users) > 0 )
+        {
+            return array('status' => true, 'data'=> $users);
+        }
+        else
+        {
+            return array('status'=>false,'data'=> 'No user Found');
+        }
+
+}
 }

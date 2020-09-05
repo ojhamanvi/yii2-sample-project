@@ -50,8 +50,8 @@ class SignupForm extends Model
 
     public function scenarios() {
         return [
-            self::SCENARIOUPDATE => ['username','email','contact_number', 'name', 'state','country','address', 'city','status'],
-            self::SCENARIOCREATE => ['username', 'name', 'email','contact_number', 'address','state', 'profile_pic'],
+            self::SCENARIOUPDATE => ['username','email','contact_number','dob', 'name', 'state','country','address', 'city','status'],
+            self::SCENARIOCREATE => ['username','password','confirm_password', 'name', 'country','city','dob','email','contact_number', 'address','state', 'profile_pic'],
         ];
     }
 
