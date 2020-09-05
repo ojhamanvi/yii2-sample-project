@@ -45,10 +45,12 @@ class SiteController extends Controller
                 'class' => VerbFilter::className(),
                 'actions' => [
                     'logout' => ['post'],
+                    'delete' => ['POST'],
                 ],
             ],
         ];
     }
+    
 
     /**
      * {@inheritdoc}
@@ -67,6 +69,7 @@ class SiteController extends Controller
     public function actionSignup()
     {
         $model = new SignupForm();
+        $model->setScenario(SignupForm::SCENARIOCREATE);
         try{
             if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post()) && $model->validate()) {
                 $model->signup();
@@ -150,15 +153,35 @@ class SiteController extends Controller
     }
 
     public function actionUpdate($id)
-    {
-       
+    {       
         $model = new SignupForm();
-        $model->setData($id);
+        try{
+        $model->setScenario(SignupForm::SCENARIOUPDATE);
+        $model->setUpdateData($id);
         if ($model->load(Yii::$app->request->post()) && $model->validate() && $model->update($id)) {
-            return $this->redirect(['view', 'id' => $id]);
+            Yii::$app->session->setFlash('success', 'User Updated Successfully!');
+            return $this->redirect(['/site/view', 'id' => $id]);
         }
+    }catch( ErrorException $ex){
+        Yii::$app->session->setFlash('error',$ex->getMessage());
+        return $this->redirect(['/site/index']);
+    }
         return $this->render('update', [
             'model' => $model,
         ]);
     }
+
+    public function actionDelete($id)
+    {
+        try{
+            $model = new SignupForm(); 
+            $model->deleteUser($id);
+            Yii::$app->session->setFlash('success','User Deleted Successfully');
+            return $this->redirect(['/site/index']);
+        }catch( ErrorException $ex){
+            Yii::$app->session->setFlash('error',$ex->getMessage());
+            return $this->redirect(['/site/index']);
+        }
+    }
+
 }

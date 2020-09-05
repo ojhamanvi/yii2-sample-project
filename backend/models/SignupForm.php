@@ -28,20 +28,30 @@ class SignupForm extends Model
     public $country;
     protected $userData = [];
 
+    const SCENARIOUPDATE = 'scenarioupdate';
+    const SCENARIOCREATE = 'scenariocreate';
     public function rules()
     {
         return [
             [['username','email','password','contact_number','address','name'], 'trim'],
-            [['username','email','password','contact_number','address','name','state','country','city','dob'], 'required'],
+            [['username','email','contact_number','address','name','state','country','city','dob'], 'required'],
             ['email', 'email'],
+            [['password'],'required','on' => self::SCENARIOCREATE],
             ['email', 'string', 'max' => 255],           
-            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This username has already been taken.'],
+            ['username', 'unique', 'targetClass' => '\common\models\User','on' => self::SCENARIOCREATE, 'message' => 'This username has already been taken.'],
             ['username', 'string', 'min' => 2, 'max' => 255],        
-            ['email', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This email address has already been taken.'],
+            ['email', 'unique', 'targetClass' => '\common\models\User', 'on' => self::SCENARIOCREATE,'message' => 'This email address has already been taken.'],
             ['password', 'required'],
             ['password', 'string', 'min' => Yii::$app->params['user.passwordMinLength']],
             [['profile_pic'], 'file', 'extensions' => 'jpg,jpeg,png','skipOnEmpty' => true,'maxSize' => 1024*1024 ],
             ['confirm_password', 'compare', 'compareAttribute'=>'password'],
+        ];
+    }
+
+    public function scenarios() {
+        return [
+            self::SCENARIOUPDATE => ['username','email','contact_number', 'name', 'state','country','address', 'city','status'],
+            self::SCENARIOCREATE => ['username', 'name', 'email','contact_number', 'address','state', 'profile_pic'],
         ];
     }
 
@@ -101,9 +111,27 @@ class SignupForm extends Model
     
     public function setData($id){
         
-        $details = $this->setUserDetails($id);
-   
+        $details = $this->setUserDetails($id);        
         $this->userData = $details;
+    }
+
+    public function setUpdateData($id){
+        
+        $detail = $this->setUserDetails($id);        
+        $this->setAttributes([
+            'name'=> $detail['name'],
+            'username'=>$detail['username'],
+            'contact_number'=>$detail['contact_number'],
+            'email'=>$detail['email'],
+            'profile_pic'=>$detail['profile_pic'] ,
+            'dob'=>$detail['dob'],
+            'address'=>$detail['address'],
+            'city'=>$detail['city'],
+            'state'=>$detail['state'],
+            'country'=>$detail['country'],
+
+
+        ]);
     }
 
 
@@ -125,6 +153,30 @@ class SignupForm extends Model
 
     public function getUserDetail(){
         return $this->userData ;
+    }
+
+    public function deleteUser($id){
+        $model = UserDetail::findOne(['user_id'=>$id]);
+       
+        $model->status = 2;
+        $model->save();
+        $user = User::findOne($id);
+        $user->status = 2;
+        $user->save();
+       
+    }
+
+    public function update($id)
+    {
+       
+        $model = User::findOne($id);
+        $model->setAttributes($this->getAttributes());  
+        $model->status = 1;
+        $model->updated_at = date('Y-m-d H:i:s');            
+        if (!$model->save()) {
+            throw new ErrorException(json_encode($model->getErrors()));            
+        }
+        return true;
     }
 
 
